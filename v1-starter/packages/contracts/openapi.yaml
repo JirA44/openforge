@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: OpenForge / MOS Hub API
-  version: 0.1.0
+  version: 1.0.1
 paths:
   /health:
     get:
@@ -23,6 +23,82 @@ paths:
             application/json:
               schema: {$ref: '#/components/schemas/CertificationResponse'}
         '422': {description: Invalid request or unknown policy}
+  /v1/projects:
+    post:
+      operationId: createProject
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/ProjectCreate'}
+      responses:
+        '201': {description: Project created}
+  /v1/strategies:
+    post:
+      operationId: createStrategy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/StrategyCreate'}
+      responses:
+        '201': {description: Strategy created}
+  /v1/strategies/{strategy_id}/versions:
+    post:
+      operationId: createStrategyVersion
+      parameters:
+        - in: path
+          name: strategy_id
+          required: true
+          schema: {type: string}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/StrategyVersionCreate'}
+      responses:
+        '201': {description: Immutable strategy version created}
+        '409': {description: Version already exists}
+  /v1/datasets/versions:
+    post:
+      operationId: createDatasetVersion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object}
+      responses:
+        '201': {description: Dataset version registered}
+  /v1/runs:
+    post:
+      operationId: createRun
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object}
+      responses:
+        '201': {description: Reproducible run completed}
+  /v1/runs/{run_id}:
+    get:
+      operationId: getRun
+      parameters:
+        - in: path
+          name: run_id
+          required: true
+          schema: {type: string}
+      responses:
+        '200': {description: Run result}
+  /v1/runs/{run_id}/replay:
+    post:
+      operationId: replayRun
+      parameters:
+        - in: path
+          name: run_id
+          required: true
+          schema: {type: string}
+      responses:
+        '200': {description: Replayed run and hash comparison}
   /v1/strategies/{strategy_id}/readiness:
     get:
       operationId: getReadiness
@@ -35,6 +111,31 @@ paths:
         '200': {description: Readiness status}
 components:
   schemas:
+    ProjectCreate:
+      type: object
+      required: [owner_id, name]
+      properties:
+        owner_id: {type: string}
+        name: {type: string}
+        visibility: {type: string, default: private}
+    StrategyCreate:
+      type: object
+      required: [project_id, name, thesis, market, venue, timeframe]
+      properties:
+        project_id: {type: string}
+        name: {type: string}
+        thesis: {type: string}
+        market: {type: string}
+        venue: {type: string}
+        timeframe: {type: string}
+    StrategyVersionCreate:
+      type: object
+      required: [version, code_hash, config_hash]
+      properties:
+        version: {type: string}
+        code_hash: {type: string, minLength: 16}
+        config_hash: {type: string, minLength: 16}
+        parent_id: {type: [string, 'null']}
     CertificationRequest:
       type: object
       required: [project_id, strategy_id, strategy_version, evidence]
@@ -78,4 +179,3 @@ components:
         gates: {type: array, items: {type: object}}
         policy_version: {type: string}
         evidence_set_hash: {type: string}
-
