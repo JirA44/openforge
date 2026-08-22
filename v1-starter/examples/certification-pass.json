@@ -1,0 +1,26 @@
+{
+  "project_id": "mos",
+  "strategy_id": "demo-strategy",
+  "strategy_version": "1.0.0",
+  "policy_version": "mos-hub-v1",
+  "evidence": {
+    "definition_complete": true,
+    "dataset_provenance_verified": true,
+    "reproducible": true,
+    "oos_validated": true,
+    "walk_forward_validated": true,
+    "paper_validated": true,
+    "shadow_validated": true,
+    "security_controls_validated": true,
+    "rr_planned": 3.2,
+    "profit_factor_net": 1.62,
+    "expectancy_net": 0.18,
+    "sample_size": 220,
+    "max_drawdown_pct": 11.4,
+    "shadow_execution_gap_bps": 8.0,
+    "code_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "dataset_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "manifest_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  }
+}
+

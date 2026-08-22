@@ -1,0 +1,15 @@
+version: mos-hub-v1
+description: Politique initiale stricte de certification MOS Hub
+thresholds:
+  rr_min: 3.0
+  profit_factor_net_min: 1.5
+  expectancy_net_min_exclusive: 0.0
+  sample_size_min: 100
+  max_drawdown_pct_max: 20.0
+  shadow_execution_gap_bps_max: 25.0
+controls:
+  human_live_approval_required: true
+  automatic_live_activation: false
+  kill_switch_required: true
+  immutable_evidence_required: true
+

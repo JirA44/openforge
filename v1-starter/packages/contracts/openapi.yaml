@@ -1,0 +1,81 @@
+openapi: 3.1.0
+info:
+  title: OpenForge / MOS Hub API
+  version: 0.1.0
+paths:
+  /health:
+    get:
+      operationId: health
+      responses:
+        '200': {description: Healthy}
+  /v1/certifications/evaluate:
+    post:
+      operationId: evaluateCertification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/CertificationRequest'}
+      responses:
+        '200':
+          description: Deterministic certification decision
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/CertificationResponse'}
+        '422': {description: Invalid request or unknown policy}
+  /v1/strategies/{strategy_id}/readiness:
+    get:
+      operationId: getReadiness
+      parameters:
+        - in: path
+          name: strategy_id
+          required: true
+          schema: {type: string}
+      responses:
+        '200': {description: Readiness status}
+components:
+  schemas:
+    CertificationRequest:
+      type: object
+      required: [project_id, strategy_id, strategy_version, evidence]
+      properties:
+        project_id: {type: string}
+        strategy_id: {type: string}
+        strategy_version: {type: string}
+        policy_version: {type: string, default: mos-hub-v1}
+        evidence: {$ref: '#/components/schemas/Evidence'}
+    Evidence:
+      type: object
+      additionalProperties: false
+      required: [definition_complete, dataset_provenance_verified, reproducible, oos_validated, walk_forward_validated, paper_validated, shadow_validated, security_controls_validated, rr_planned, profit_factor_net, expectancy_net, sample_size, max_drawdown_pct, shadow_execution_gap_bps, code_hash, dataset_hash, manifest_hash]
+      properties:
+        definition_complete: {type: boolean}
+        dataset_provenance_verified: {type: boolean}
+        reproducible: {type: boolean}
+        oos_validated: {type: boolean}
+        walk_forward_validated: {type: boolean}
+        paper_validated: {type: boolean}
+        shadow_validated: {type: boolean}
+        security_controls_validated: {type: boolean}
+        rr_planned: {type: number, exclusiveMinimum: 0}
+        profit_factor_net: {type: number, minimum: 0}
+        expectancy_net: {type: number}
+        sample_size: {type: integer, minimum: 1}
+        max_drawdown_pct: {type: number, minimum: 0}
+        shadow_execution_gap_bps: {type: number, minimum: 0}
+        code_hash: {type: string, minLength: 16}
+        dataset_hash: {type: string, minLength: 16}
+        manifest_hash: {type: string, minLength: 16}
+    CertificationResponse:
+      type: object
+      required: [decision, status, ready_for_live, score, blocking_reasons, gates, policy_version, evidence_set_hash]
+      properties:
+        decision: {type: string, enum: [PASS, FAIL]}
+        status: {type: string}
+        ready_for_live: {type: boolean}
+        score: {type: number}
+        blocking_reasons: {type: array, items: {type: string}}
+        gates: {type: array, items: {type: object}}
+        policy_version: {type: string}
+        evidence_set_hash: {type: string}
+

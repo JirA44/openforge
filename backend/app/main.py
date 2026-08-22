@@ -5,6 +5,7 @@ import json
 
 import yaml
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
 app = FastAPI(title="OpenForge API", version="0.1.0")
@@ -77,9 +78,58 @@ def _synthetic_evaluator(manifest: dict[str, Any]) -> dict[str, Any]:
 def moshub_backtest(request: BacktestRequest) -> dict[str, Any]:
     evaluator = _synthetic_evaluator if request.synthetic else None
     try:
-        return moshub.run_backtest(request.manifest, evaluator=evaluator)
+        sheet = moshub.run_backtest(request.manifest, evaluator=evaluator)
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error))
+    # Persistance SQLite (spec V1 §2.1)
+    from . import db
+    mh = sheet["manifest_hash"]
+    db.save_artifact(request.manifest, mh, sheet["computed_at"])
+    db.save_run(
+        run_id=sheet["sheet_signature"][:24],
+        manifest_hash=mh,
+        engine_version="edge_harness_v2",
+        metrics=sheet["results"]["aggregate"],
+        folds=sheet["results"].get("folds", []),
+        signature=sheet["sheet_signature"],
+        runtime_s=sheet["runtime_s"],
+        computed_at=sheet["computed_at"],
+    )
+    return sheet
+
+
+@app.get("/moshub/leaderboard")
+def moshub_leaderboard(format: str = "json") -> Any:
+    from . import db
+    rows = db.leaderboard()
+    if format == "html":
+        badges = {
+            r: f"<span class='badge' style='background:{color}'>{r}</span>"
+            for r, color in [("CERTIFIED", "#2e7d32"), ("READY_FOR_LIVE", "#1b5e20"), ("SHADOW", "#0069c0"), ("PAPER", "#f57c00")]
+        }
+        lines = [
+            "<tr><td>#</td><td>nom</td><td>version</td><td>PF net</td><td>trades</td><td>retour</td><td>hash</td></tr>"
+        ]
+        for index, row in enumerate(rows, 1):
+            lines.append(
+                f"<tr><td>{index}</td><td>{row['name']}</td><td>{row['version']}</td>"
+                f"<td>{row['net_pf'] if row['net_pf'] is not None else '—'}</td>"
+                f"<td>{row['trades'] if row['trades'] is not None else '—'}</td>"
+                f"<td>{row['return_pct'] if row['return_pct'] is not None else '—'}%</td>"
+                f"<td><code>{row['manifest_hash']}</code></td></tr>"
+            )
+        body = "\n".join(lines)
+        return HTMLResponse(
+            "<!DOCTYPE html><html lang='fr'><head><meta charset='utf-8'>"
+            "<meta http-equiv='refresh' content='60'><title>MOS Hub — Leaderboard</title>"
+            "<style>body{font-family:Consolas,monospace;background:#111;color:#ddd;margin:2em}"
+            "table{border-collapse:collapse;width:100%}th,td{padding:6px 10px;border-bottom:1px solid #333;text-align:left}"
+            "th{color:#888}h1{font-size:1.3em;color:#fff}.badge{padding:2px 8px;border-radius:3px;color:#fff}"
+            "</style></head><body><h1>MOS HUB — LEADERBOARD</h1>"
+            "<p style='color:#666'>Trié par PF net OOS · auto-refresh 60s</p>"
+            f"<table>{body}</table></body></html>"
+        )
+    return rows
 
 
 @app.get("/moshub/runs/{run_id}")
