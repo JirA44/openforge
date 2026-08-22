@@ -1,0 +1,43 @@
+schema_version: "1.0.0"
+artifact_type: decision
+name: "Example — prioritization decision"
+version: "1.0.0"
+author: "openforge-example"
+license: "MIT"
+created_at: "2026-08-07"
+status: "approved"
+
+context: |
+  Decide which sub-tasks to implement first
+  based on evidence-weighted robustness scoring and
+  the literature on multiple testing bias.
+
+arguments:
+  - "Risk Kernel unblocks live trading (P1)"
+  - "Cost Engine unblocks the impact simulator"
+  - "PIT store is dependency root for everything quantitative"
+
+alternatives:
+  - id: "sequential"
+    description: "Implement strictly in dependency order"
+    pros: ["Strict dependency order"]
+    cons: ["Slower to reach first P1 win"]
+  - id: "parallel-rush"
+    description: "Implement Risk Kernel and Cost Engine in parallel"
+    pros: ["Faster first P1 win"]
+    cons: ["Risk Kernel without PIT leads to lookahead errors"]
+
+decision: "sequential"
+decided_by: "example-user"
+decided_at: "2026-08-07"
+
+consequences:
+  - "PIT store becomes blocker for all downstream tasks"
+  - "Risk Kernel cannot be enabled without passing tests"
+
+outcome:
+  status: "pending"
+  notes: "Re-evaluate after dependency root is done"
+
+references:
+  - "docs/ARCHITECTURE.md"

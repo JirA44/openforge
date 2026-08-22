@@ -1,0 +1,10 @@
+schema_version: "0.1"
+artifact_type: dataset
+name: market-bars-example
+version: "0.1.0"
+description: Exemple de dataset OHLCV versionné.
+license: CC-BY-4.0
+provenance:
+  source: example
+  collection_method: documented
+  immutable_hash: required

@@ -1,0 +1,27 @@
+schema_version: "0.1"
+artifact_type: strategy
+name: mos-vwap-reversion
+version: "0.1.0"
+description: Stratégie exemple de retour à la moyenne autour du VWAP.
+license: Apache-2.0
+authors:
+  - name: MOS
+inputs:
+  - OHLCV
+  - fees
+  - slippage
+outputs:
+  - trades
+  - equity_curve
+evaluation:
+  metrics:
+    - sharpe
+    - sortino
+    - calmar
+    - max_drawdown
+    - expectancy
+  validation:
+    - walk_forward
+    - out_of_sample
+provenance:
+  data_hash_required: true

@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OpenForge Manifest",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "name",
+    "version",
+    "license"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "artifact_type": {
+      "type": "string",
+      "enum": [
+        "strategy",
+        "dataset",
+        "knowledge",
+        "proof",
+        "decision"
+      ]
+    },
+    "name": {
+      "type": "string",
+      "minLength": 2
+    },
+    "version": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "license": {
+      "type": "string"
+    },
+    "authors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "inputs": {
+      "type": "array"
+    },
+    "outputs": {
+      "type": "array"
+    },
+    "dependencies": {
+      "type": "array"
+    },
+    "evaluation": {
+      "type": "object"
+    },
+    "provenance": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": true
+}

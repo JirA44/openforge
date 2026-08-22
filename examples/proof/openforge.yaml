@@ -1,0 +1,11 @@
+schema_version: "0.1"
+artifact_type: proof
+name: arithmetic-proof-example
+version: "0.1.0"
+description: Exemple de dépôt de preuve formelle.
+license: MIT
+proof_system: lean
+entrypoint: Main.lean
+evaluation:
+  compile: true
+  verify_dependencies: true

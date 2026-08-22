@@ -1,0 +1,11 @@
+schema_version: "0.1"
+artifact_type: knowledge
+name: inflation-claim-example
+version: "0.1.0"
+description: Exemple d'affirmation sourcée et versionnée.
+license: CC-BY-4.0
+claims:
+  - id: claim-001
+    text: Une affirmation doit être liée à ses sources.
+    confidence: 0.95
+    sources: []
