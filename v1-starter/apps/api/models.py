@@ -99,6 +99,7 @@ class RunCreate(BaseModel):
     runner_version: str = "builtin-trade-metrics-v1"
     parameters: dict[str, Any] = Field(default_factory=dict)
     seed: int = 0
+    starting_equity: float = Field(gt=0)
     trades: list[TradeObservation] = Field(min_length=1)
 
 
@@ -170,3 +171,46 @@ class ReadinessResponse(BaseModel):
     blocking_evidence: list[str]
     certification_id: str | None = None
     evaluated_at: str | None = None
+
+
+class ValidationAttestations(BaseModel):
+    definition_complete: bool
+    dataset_provenance_verified: bool
+    oos_validated: bool
+    walk_forward_validated: bool
+    security_controls_validated: bool
+
+
+class CertificationFromRunRequest(BaseModel):
+    run_id: str
+    paper_session_id: str
+    shadow_session_id: str
+    policy_version: str = "mos-hub-v1"
+    attestations: ValidationAttestations
+
+
+class ValidationSessionCreate(BaseModel):
+    strategy_id: str
+    strategy_version: str
+    mode: str = Field(pattern="^(paper|shadow)$")
+    minimum_observations: int = Field(default=100, gt=0)
+    max_mean_gap_bps: float = Field(default=25, ge=0)
+    max_rejection_rate: float = Field(default=0.05, ge=0, le=1)
+
+
+class ValidationObservation(BaseModel):
+    execution_gap_bps: float = Field(ge=0)
+    accepted: bool = True
+
+
+class ValidationSessionResult(BaseModel):
+    id: str
+    strategy_id: str
+    strategy_version: str
+    mode: str
+    status: str
+    observation_count: int
+    mean_gap_bps: float
+    rejection_rate: float
+    passed: bool
+    blocking_reasons: list[str]

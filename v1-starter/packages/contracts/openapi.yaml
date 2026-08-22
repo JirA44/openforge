@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: OpenForge / MOS Hub API
-  version: 1.0.1
+  version: 1.0.3
 paths:
   /health:
     get:
@@ -23,6 +23,17 @@ paths:
             application/json:
               schema: {$ref: '#/components/schemas/CertificationResponse'}
         '422': {description: Invalid request or unknown policy}
+  /v1/certifications/from-run:
+    post:
+      operationId: evaluateCertificationFromRun
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object, required: [run_id, attestations]}
+      responses:
+        '200': {description: Certification with metrics derived from persisted run}
+        '422': {description: Run or attestations are not certifiable}
   /v1/projects:
     post:
       operationId: createProject
@@ -99,6 +110,36 @@ paths:
           schema: {type: string}
       responses:
         '200': {description: Replayed run and hash comparison}
+  /v1/validations:
+    post:
+      operationId: createValidationSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object, required: [strategy_id, strategy_version, mode]}
+      responses:
+        '201': {description: Paper or shadow validation session created}
+  /v1/validations/{session_id}/observations:
+    post:
+      operationId: addValidationObservation
+      parameters:
+        - in: path
+          name: session_id
+          required: true
+          schema: {type: string}
+      responses:
+        '204': {description: Observation persisted}
+  /v1/validations/{session_id}/finalize:
+    post:
+      operationId: finalizeValidationSession
+      parameters:
+        - in: path
+          name: session_id
+          required: true
+          schema: {type: string}
+      responses:
+        '200': {description: Calculated validation verdict}
   /v1/strategies/{strategy_id}/readiness:
     get:
       operationId: getReadiness

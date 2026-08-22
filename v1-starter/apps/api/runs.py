@@ -19,6 +19,7 @@ def build_manifest(run: RunCreate, version_record: dict, dataset_record: dict) -
         "runner_version": run.runner_version,
         "parameters": run.parameters,
         "seed": run.seed,
+        "starting_equity": run.starting_equity,
         "trades": [t.model_dump() for t in run.trades],
     }
 
@@ -36,6 +37,7 @@ def execute_manifest(manifest: dict) -> dict:
         "expectancy_net": round(sum(net)/len(net),8),
         "sample_size": len(net),
         "max_drawdown_absolute": round(max_dd,8),
+        "max_drawdown_pct": round(100*max_dd/manifest["starting_equity"],8),
         "net_total": round(sum(net),8),
     }
     return metrics

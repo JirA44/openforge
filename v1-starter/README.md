@@ -1,6 +1,6 @@
-# OpenForge V1.01 Starter / MOS Hub
+# OpenForge V1.03 Starter / MOS Hub
 
-Version interne : `1.0.1`.
+Version interne : `1.0.3`.
 
 Starter exécutable du noyau OpenForge et de son premier produit MOS Hub.
 
@@ -59,3 +59,11 @@ Les versions de stratégie sont immuables : un même numéro de version ne peut 
 ## Runs reproductibles
 
 Un run lie explicitement une version de stratégie, ses hashes code/configuration, une version de dataset, un runner, ses paramètres, sa seed et ses observations. Le manifeste canonique et le résultat sont hashés. `POST /v1/runs/{id}/replay` recalcule le résultat et signale `REPLAY_MATCH` ou `REPLAY_MISMATCH`.
+
+## Certification depuis un run
+
+`POST /v1/certifications/from-run` dérive automatiquement RR, Profit Factor net, expectancy, échantillon, drawdown et hashes depuis le run persisté. Ces champs ne peuvent donc plus être saisis manuellement dans ce parcours. Les attestations OOS, walk-forward, paper, shadow et sécurité restent exigées séparément.
+
+## Paper et shadow vérifiés
+
+Les routes `/v1/validations` enregistrent des sessions paper/shadow et leurs observations. La validation finale contrôle le volume minimal, l'écart d'exécution moyen et le taux de rejet. La certification depuis un run exige désormais les identifiants de deux sessions finalisées ; un simple booléen ne suffit plus.
