@@ -1,5 +1,14 @@
 # Historique des versions
 
+## V1.04 - 22 août 2026
+
+- Déploiements canari conditionnés par READY_FOR_LIVE.
+- Armement et activation par confirmations humaines séparées.
+- Limites de capital, perte quotidienne et drawdown.
+- Kill switch automatique et pause manuelle.
+- Gateway maintenu verrouillé : aucun ordre réel.
+- Quinze tests critiques validés.
+
 ## V1.03 - 22 août 2026
 
 - Sessions paper et shadow persistées.

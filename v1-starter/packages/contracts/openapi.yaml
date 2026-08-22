@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: OpenForge / MOS Hub API
-  version: 1.0.3
+  version: 1.0.4
 paths:
   /health:
     get:
@@ -140,6 +140,31 @@ paths:
           schema: {type: string}
       responses:
         '200': {description: Calculated validation verdict}
+  /v1/deployments:
+    post:
+      operationId: createCanaryDeployment
+      responses:
+        '201': {description: Locked canary deployment created}
+  /v1/deployments/{deployment_id}/arm:
+    post:
+      operationId: armDeployment
+      responses:
+        '200': {description: Deployment armed after human confirmation}
+  /v1/deployments/{deployment_id}/activate:
+    post:
+      operationId: activateLockedDeployment
+      responses:
+        '200': {description: Deployment active but gateway remains locked}
+  /v1/deployments/{deployment_id}/risk:
+    post:
+      operationId: submitRiskSnapshot
+      responses:
+        '200': {description: Risk state and possible automatic suspension}
+  /v1/deployments/{deployment_id}/pause:
+    post:
+      operationId: pauseDeployment
+      responses:
+        '200': {description: Deployment suspended and gateway locked}
   /v1/strategies/{strategy_id}/readiness:
     get:
       operationId: getReadiness

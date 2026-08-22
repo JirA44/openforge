@@ -214,3 +214,40 @@ class ValidationSessionResult(BaseModel):
     rejection_rate: float
     passed: bool
     blocking_reasons: list[str]
+
+
+class DeploymentCreate(BaseModel):
+    strategy_id: str
+    strategy_version: str
+    venue: str
+    capital_limit: float = Field(gt=0)
+    daily_loss_limit: float = Field(gt=0)
+    drawdown_limit_pct: float = Field(gt=0, le=100)
+    canary: bool = True
+
+
+class HumanApproval(BaseModel):
+    approved_by: str = Field(min_length=1)
+    confirmation: str
+
+
+class RiskSnapshot(BaseModel):
+    pnl_today: float
+    drawdown_pct: float = Field(ge=0)
+    data_reliable: bool = True
+    connector_reliable: bool = True
+
+
+class Deployment(BaseModel):
+    id: str
+    strategy_id: str
+    strategy_version: str
+    venue: str
+    status: str
+    capital_limit: float
+    daily_loss_limit: float
+    drawdown_limit_pct: float
+    canary: bool
+    gateway_locked: bool
+    approved_by: str | None = None
+    blocking_reasons: list[str] = Field(default_factory=list)

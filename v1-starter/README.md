@@ -1,6 +1,6 @@
-# OpenForge V1.03 Starter / MOS Hub
+# OpenForge V1.04 Starter / MOS Hub
 
-Version interne : `1.0.3`.
+Version interne : `1.0.4`.
 
 Starter exécutable du noyau OpenForge et de son premier produit MOS Hub.
 
@@ -67,3 +67,7 @@ Un run lie explicitement une version de stratégie, ses hashes code/configuratio
 ## Paper et shadow vérifiés
 
 Les routes `/v1/validations` enregistrent des sessions paper/shadow et leurs observations. La validation finale contrôle le volume minimal, l'écart d'exécution moyen et le taux de rejet. La certification depuis un run exige désormais les identifiants de deux sessions finalisées ; un simple booléen ne suffit plus.
+
+## Live sécurisé, encore verrouillé
+
+Un déploiement canari exige une stratégie `READY_FOR_LIVE`, des limites explicites et deux confirmations humaines : armement puis activation. Les violations de perte, drawdown, fiabilité des données ou du connecteur déclenchent `SUSPENDED`. En V1.04, `gateway_locked` reste toujours à `true` : aucun adaptateur ne peut transmettre d’ordre réel.

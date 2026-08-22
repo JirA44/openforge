@@ -8,12 +8,13 @@ from .models import (
     ReadinessResponse, Strategy, StrategyCreate, DatasetCreate, DatasetVersion,
     RunCreate, RunResult, StrategyVersion, StrategyVersionCreate, CertificationFromRunRequest,
     ValidationSessionCreate, ValidationObservation, ValidationSessionResult,
+    DeploymentCreate, Deployment, HumanApproval, RiskSnapshot,
 )
 from .repository import Repository
 
 app = FastAPI(
     title="OpenForge / MOS Hub API",
-    version="1.0.3",
+    version="1.0.4",
     description="API d'artefacts vérifiables et de certification déterministe de stratégies.",
 )
 DB_PATH = os.getenv("OPENFORGE_DB", str(Path(__file__).resolve().parents[2] / "openforge.db"))
@@ -114,6 +115,38 @@ def add_observation(session_id: str, data: ValidationObservation) -> None:
 @app.post("/v1/validations/{session_id}/finalize", response_model=ValidationSessionResult)
 def finalize_validation(session_id: str) -> ValidationSessionResult:
     try: return repo.finalize_validation_session(session_id)
+    except KeyError as exc: raise HTTPException(status_code=404,detail=str(exc)) from exc
+
+
+@app.post("/v1/deployments", response_model=Deployment, status_code=201)
+def create_deployment(data: DeploymentCreate) -> Deployment:
+    try: return repo.create_deployment(data)
+    except ValueError as exc: raise HTTPException(status_code=422,detail=str(exc)) from exc
+
+
+@app.post("/v1/deployments/{deployment_id}/arm", response_model=Deployment)
+def arm_deployment(deployment_id: str, approval: HumanApproval) -> Deployment:
+    try: return repo.arm_deployment(deployment_id,approval)
+    except KeyError as exc: raise HTTPException(status_code=404,detail=str(exc)) from exc
+    except ValueError as exc: raise HTTPException(status_code=409,detail=str(exc)) from exc
+
+
+@app.post("/v1/deployments/{deployment_id}/activate", response_model=Deployment)
+def activate_deployment(deployment_id: str, approval: HumanApproval) -> Deployment:
+    try: return repo.activate_deployment(deployment_id,approval)
+    except KeyError as exc: raise HTTPException(status_code=404,detail=str(exc)) from exc
+    except ValueError as exc: raise HTTPException(status_code=409,detail=str(exc)) from exc
+
+
+@app.post("/v1/deployments/{deployment_id}/risk", response_model=Deployment)
+def monitor_deployment(deployment_id: str, risk: RiskSnapshot) -> Deployment:
+    try: return repo.monitor_deployment(deployment_id,risk)
+    except KeyError as exc: raise HTTPException(status_code=404,detail=str(exc)) from exc
+
+
+@app.post("/v1/deployments/{deployment_id}/pause", response_model=Deployment)
+def pause_deployment(deployment_id: str) -> Deployment:
+    try: return repo.pause_deployment(deployment_id)
     except KeyError as exc: raise HTTPException(status_code=404,detail=str(exc)) from exc
 
 

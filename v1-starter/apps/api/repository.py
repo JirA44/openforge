@@ -12,6 +12,7 @@ from .models import (
     DatasetVersion, RunCreate, RunResult, StrategyVersion, StrategyVersionCreate,
     CertificationFromRunRequest, Evidence,
     ValidationSessionCreate, ValidationObservation, ValidationSessionResult,
+    DeploymentCreate, Deployment, HumanApproval, RiskSnapshot,
 )
 from .runs import build_manifest, canonical_hash, execute_reproducibly
 
@@ -67,6 +68,12 @@ CREATE TABLE IF NOT EXISTS validation_sessions (
 CREATE TABLE IF NOT EXISTS validation_observations (
  id INTEGER PRIMARY KEY AUTOINCREMENT, session_id TEXT NOT NULL REFERENCES validation_sessions(id),
  execution_gap_bps REAL NOT NULL, accepted INTEGER NOT NULL, created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS deployments (
+ id TEXT PRIMARY KEY, strategy_id TEXT NOT NULL REFERENCES strategies(id), strategy_version TEXT NOT NULL,
+ venue TEXT NOT NULL, status TEXT NOT NULL, capital_limit REAL NOT NULL, daily_loss_limit REAL NOT NULL,
+ drawdown_limit_pct REAL NOT NULL, canary INTEGER NOT NULL, gateway_locked INTEGER NOT NULL,
+ approved_by TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, blocking_reasons_json TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_strategies_project ON strategies(project_id);
 CREATE INDEX IF NOT EXISTS idx_versions_strategy ON strategy_versions(strategy_id);
@@ -236,6 +243,63 @@ class Repository:
             c.execute("UPDATE validation_sessions SET status=?, finalized_at=? WHERE id=?",(status,now(),session_id))
             self._audit(c,"VALIDATION_FINALIZED","validation_session",session_id,{"status":status,"blocking_reasons":current.blocking_reasons})
         return self.get_validation_session(session_id)
+
+    def _deployment(self, row) -> Deployment:
+        return Deployment(id=row["id"],strategy_id=row["strategy_id"],strategy_version=row["strategy_version"],venue=row["venue"],status=row["status"],capital_limit=row["capital_limit"],daily_loss_limit=row["daily_loss_limit"],drawdown_limit_pct=row["drawdown_limit_pct"],canary=bool(row["canary"]),gateway_locked=bool(row["gateway_locked"]),approved_by=row["approved_by"],blocking_reasons=json.loads(row["blocking_reasons_json"]))
+
+    def get_deployment(self, deployment_id: str) -> Deployment:
+        with self.connect() as c: row=c.execute("SELECT * FROM deployments WHERE id=?",(deployment_id,)).fetchone()
+        if not row: raise KeyError("deployment not found")
+        return self._deployment(row)
+
+    def create_deployment(self, data: DeploymentCreate) -> Deployment:
+        did=str(uuid.uuid4())
+        with self.connect() as c:
+            cert=c.execute("SELECT ready_for_live FROM certifications WHERE strategy_id=? AND strategy_version=? ORDER BY created_at DESC LIMIT 1",(data.strategy_id,data.strategy_version)).fetchone()
+            if not cert or not bool(cert["ready_for_live"]): raise ValueError("strategy version is not READY_FOR_LIVE")
+            if not data.canary: raise ValueError("V1.04 requires canary mode")
+            ts=now(); c.execute("INSERT INTO deployments VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",(did,data.strategy_id,data.strategy_version,data.venue,"CREATED",data.capital_limit,data.daily_loss_limit,data.drawdown_limit_pct,1,1,None,ts,ts,"[]"))
+            self._audit(c,"DEPLOYMENT_CREATED","deployment",did,data.model_dump())
+        return self.get_deployment(did)
+
+    def arm_deployment(self, deployment_id: str, approval: HumanApproval) -> Deployment:
+        if approval.confirmation != "ARM LIVE CANARY": raise ValueError("invalid arming confirmation")
+        with self.connect() as c:
+            row=c.execute("SELECT status FROM deployments WHERE id=?",(deployment_id,)).fetchone()
+            if not row: raise KeyError("deployment not found")
+            if row["status"] != "CREATED": raise ValueError("deployment cannot be armed from current state")
+            c.execute("UPDATE deployments SET status='ARMED', approved_by=?, updated_at=? WHERE id=?",(approval.approved_by,now(),deployment_id))
+            self._audit(c,"DEPLOYMENT_ARMED","deployment",deployment_id,{"approved_by":approval.approved_by})
+        return self.get_deployment(deployment_id)
+
+    def activate_deployment(self, deployment_id: str, approval: HumanApproval) -> Deployment:
+        if approval.confirmation != "ACTIVATE LIVE CANARY": raise ValueError("invalid activation confirmation")
+        with self.connect() as c:
+            row=c.execute("SELECT status FROM deployments WHERE id=?",(deployment_id,)).fetchone()
+            if not row: raise KeyError("deployment not found")
+            if row["status"] != "ARMED": raise ValueError("deployment must be ARMED first")
+            c.execute("UPDATE deployments SET status='LIVE_LOCKED', updated_at=? WHERE id=?",(now(),deployment_id))
+            self._audit(c,"DEPLOYMENT_ACTIVATED_LOCKED","deployment",deployment_id,{"approved_by":approval.approved_by,"gateway_locked":True})
+        return self.get_deployment(deployment_id)
+
+    def monitor_deployment(self, deployment_id: str, risk: RiskSnapshot) -> Deployment:
+        dep=self.get_deployment(deployment_id); reasons=[]
+        if risk.pnl_today <= -dep.daily_loss_limit: reasons.append("daily loss limit breached")
+        if risk.drawdown_pct >= dep.drawdown_limit_pct: reasons.append("drawdown limit breached")
+        if not risk.data_reliable: reasons.append("data unreliable")
+        if not risk.connector_reliable: reasons.append("connector unreliable")
+        if reasons:
+            with self.connect() as c:
+                c.execute("UPDATE deployments SET status='SUSPENDED', gateway_locked=1, blocking_reasons_json=?, updated_at=? WHERE id=?",(json.dumps(reasons),now(),deployment_id))
+                self._audit(c,"KILL_SWITCH_TRIGGERED","deployment",deployment_id,{"reasons":reasons,"risk":risk.model_dump()})
+        return self.get_deployment(deployment_id)
+
+    def pause_deployment(self, deployment_id: str) -> Deployment:
+        self.get_deployment(deployment_id)
+        with self.connect() as c:
+            c.execute("UPDATE deployments SET status='SUSPENDED', gateway_locked=1, blocking_reasons_json=?, updated_at=? WHERE id=?",(json.dumps(["manual pause"]),now(),deployment_id))
+            self._audit(c,"DEPLOYMENT_PAUSED","deployment",deployment_id,{})
+        return self.get_deployment(deployment_id)
 
     def save_certification(self, request: CertificationRequest, response: CertificationResponse) -> str:
         cid=str(uuid.uuid4()); created=now()
