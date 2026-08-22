@@ -209,6 +209,15 @@ class Repository:
         )
         return CertificationRequest(project_id="derived-from-registry",strategy_id=row["strategy_id"],strategy_version=row["strategy_version"],policy_version=data.policy_version,evidence=evidence)
 
+    def list_validation_sessions(self, strategy_id: str, mode: str, open_only: bool = False) -> list[dict]:
+        query = "SELECT * FROM validation_sessions WHERE strategy_id=? AND mode=?"
+        params: list = [strategy_id, mode]
+        if open_only:
+            query += " AND status='RUNNING'"
+        with self.connect() as c:
+            rows = c.execute(query, params).fetchall()
+        return [dict(row) for row in rows]
+
     def create_validation_session(self, data: ValidationSessionCreate) -> ValidationSessionResult:
         sid=str(uuid.uuid4())
         with self.connect() as c:
