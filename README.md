@@ -1,42 +1,45 @@
 # OpenForge
 
-> **Présentation complète → [docs/PRESENTATION.md](docs/PRESENTATION.md)** — problèmes détaillés, scénarios réels, API exemples, possibilités futures.
-> [Cas d'utilisation](docs/USAGE_EXAMPLES.md) · [Contribution](CONTRIBUTING.md) · [Tests](tests/)
+**Le Git des artefacts vérifiables.**
 
-A Git for **verifiable artifacts**: knowledge, datasets, mathematical proofs,
-and quantitative strategies. Every repository is a manifest + versioned files
-+ integrity hashes + automated evaluations + verifiable provenance.
+OpenForge versionne des connaissances, données, modèles, preuves, expériences et décisions. Chaque artefact conserve son manifeste, ses fichiers, ses empreintes d'intégrité, ses évaluations et sa provenance.
 
+## À quoi ça sert
 
----
-## À quoi ça sert (direct)
-**Artefacts vérifiables — preuves chronologiques certifiées et rejouables.**
+OpenForge permet de :
 
-**Problèmes réglés :** dossier immuable, hash SHA-256, audit public, anti-fraude d'ordre, couverture complète ou détectée manquante (jamais masquée).
-**Scénarios réels :** MOS Hub (certification) · Diplôme (ancrage) · Supply chain (versionnée).
-**À quoi ça pourrait servir :** automatisation du dossier, ancrage blockchain, certification publique, audit tiers indépendant.
-Voir présentation complète : [docs/PRESENTATION.md](docs/PRESENTATION.md)
----
-## Products
+- conserver un dossier chronologique et immuable ;
+- vérifier l'intégrité des fichiers avec SHA-256 ;
+- rendre les résultats reproductibles et auditables ;
+- détecter les preuves, sources ou dépendances manquantes ;
+- comparer des versions sans réécrire l'historique ;
+- publier des résultats explicables, sans transformer une hypothèse en certification.
 
-- **KnowledgeForge** — sourced, versioned, contestable claims.
-- **DataForge** — versioned, traceable, reproducible datasets.
-- **ProofForge** — formal proofs with dependencies and automatic verification.
-- **MOS Hub** — quantitative strategies, reproducible backtests, live tracking.
-- **DecisionForge** — decision journal: hypotheses, alternatives, outcomes.
+## Les produits Forge
 
-## Principle
+- **KnowledgeForge** : affirmations sourcées, versions, preuves et contradictions.
+- **DataForge** : jeux de données versionnés, traçables et reproductibles.
+- **ModelForge** : versions de modèles, artefacts, benchmarks et dérive.
+- **ProofForge** : preuves formelles, dépendances et vérification automatique.
+- **DecisionForge** : hypothèses, alternatives, décisions et résultats observés.
+- **ExperimentForge** : expériences, paramètres, résultats et réplications.
+- **SimulationForge** : simulations, scénarios, hypothèses et sorties vérifiables.
+- **MOS Hub** : intégration quantitative optionnelle pour les stratégies et backtests.
 
-Each artifact repository contains:
+Chaque produit peut fonctionner séparément. OpenForge fournit le socle commun ; aucun produit n'est requis pour utiliser les autres.
 
-1. a standard manifest;
-2. Git-versioned files;
-3. integrity proofs by hash;
-4. automated evaluations;
-5. verifiable provenance;
-6. reproducible results.
+## Principe
 
-## Quick start (Windows / PowerShell)
+Chaque dépôt d'artefact contient :
+
+1. un manifeste standard ;
+2. des fichiers versionnés par Git ;
+3. des empreintes d'intégrité ;
+4. des évaluations automatisées ;
+5. une provenance vérifiable ;
+6. des résultats rejouables.
+
+## Démarrage rapide sous Windows / PowerShell
 
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass
@@ -44,28 +47,37 @@ Set-ExecutionPolicy -Scope Process Bypass
 ./run.ps1
 ```
 
-Local API: `http://127.0.0.1:8000` — see `docs/ARCHITECTURE.md`.
+API locale : `http://127.0.0.1:8000`. Documentation : `docs/ARCHITECTURE.md`.
 
-## Recommended MVP
+## Parcours type
 
-Start with **MOS Hub**: create a strategy repo, validate its manifest, run a
-standardized backtest, compute CAGR / Sharpe / Sortino / Calmar / drawdown,
-compare two commits, publish a performance sheet, sign results, fork a
-strategy.
+1. Créer un dépôt d'artefact et son manifeste.
+2. Ajouter les fichiers et leurs sources.
+3. Valider le manifeste et calculer les empreintes.
+4. Exécuter les évaluations adaptées au type d'artefact.
+5. Publier un rapport reproductible.
+6. Comparer ou forker une version sans effacer l'historique.
 
 ## Structure
 
 ```text
 openforge-starter/
-├── backend/     # FastAPI validation & hashing API
-├── cli/         # openforge CLI
-├── docs/        # architecture, product vision, roadmap
-├── examples/    # sample manifests per artifact type
-├── schemas/     # JSON schema
+├── backend/     # API FastAPI de validation et d'intégrité
+├── cli/         # CLI OpenForge
+├── docs/        # architecture, usages et feuille de route
+├── examples/    # manifestes d'exemple
+├── schemas/     # schémas JSON
 ├── bootstrap.ps1
 └── run.ps1
 ```
 
-## License
+## Limites
 
-MIT — see [LICENSE](LICENSE).
+OpenForge prouve l'intégrité et la traçabilité des éléments enregistrés. Il ne prouve pas à lui seul la vérité d'une affirmation, la qualité scientifique d'un seuil ou la pertinence d'une décision. Les validations et activations sensibles restent soumises à une revue humaine.
+
+## Documentation
+
+- [Présentation complète](docs/PRESENTATION.md)
+- [Exemples d'utilisation](docs/USAGE_EXAMPLES.md)
+- [Contribution](CONTRIBUTING.md)
+- [Licence MIT](LICENSE)
