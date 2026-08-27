@@ -19,6 +19,17 @@ curl -X POST http://localhost:8000/v1/certification-evidence-bundles -d '{"certi
 # → { "qualification": "COMPLETE|GAPPED|INSUFFICIENT|INCOMPATIBLE", "coverage_ratio": 0.94, ... }
 ```
 
+## Problèmes réglés (détaillés)
+- **Artefact sans preuve opposable** → chaque dossier expose obligations, fournisseurs, ratios de couverture, hash SHA-256
+- **Certification qui ne rejoue pas indépendamment du client** → serveur recharge et recalcule, jamais dans l'ordre client
+- **Preuve qui expire sans alerte** → stabilité chronologique mesurée (STABLE/REGRESSED/RECOVERED/INSUFFICIENT/INCOMPATIBLE)
+- **Verdict déclaratif sans justification** → le dossier est immuable, déterministe et audit public
+
+## Scénarios d'utilisation (réels)
+- **MOS Hub** → paquet de preuves rejouable avec 14 gates et hash d'intégrité
+- **Diplôme / attestation** → preuve ancrée, opposable, portable entre institutions
+- **Supply chain** → artefacts versionnés et traçables par provenance fermée
+
 ## À quoi ça pourrait servir (futur / possibilités)
 - Blockchain de preuves
 - Certification continue
